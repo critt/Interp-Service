@@ -3,7 +3,16 @@ import socketio
 from aiohttp import web
 import json
 from config import BACKEND_PORT
+from config import GOOGLE_SERVICE_JSON_FILE
 from gcp_service import GCPService
+import firebase_admin
+from firebase_admin import credentials, auth, exceptions as firebase_exceptions
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate(GOOGLE_SERVICE_JSON_FILE)
+firebase_admin.initialize_app(cred)
+
+# TODO: add firebase sdk and validate tokens for each request
 
 app = web.Application()
 routes = web.RouteTableDef()
@@ -27,7 +36,15 @@ sio.attach(app)
 
 # Define the SubjectNamespace
 @sio.on('connect', namespace='/subject')
-async def connect_subject(sid, environ):
+async def connect_subject(sid, environ, tokenMap):
+    try:
+        auth.verify_id_token(tokenMap['token'])
+    except firebase_exceptions.FirebaseError as fbe:
+        print(f"Unauthorized: Invalid token for client {sid}: {fbe}")
+        raise ConnectionRefusedError('authentication failed')
+    except (KeyError, TypeError) as e:
+        print(f"Unauthorized: missing token for client {sid}: {e}")
+        raise ConnectionRefusedError('authentication failed')
     print(f'Client connected to /subject: {sid}')
 
 @sio.on('disconnect', namespace='/subject')
@@ -50,7 +67,15 @@ async def close_google_stream_subject(sid):
 
 # Define the ObjectNamespace
 @sio.on('connect', namespace='/object')
-async def connect_object(sid, environ):
+async def connect_object(sid, environ, tokenMap):
+    try:
+        auth.verify_id_token(tokenMap['token'])
+    except firebase_exceptions.FirebaseError as fbe:
+        print(f"Unauthorized: Invalid token for client {sid}: {fbe}")
+        raise ConnectionRefusedError('authentication failed')
+    except (KeyError, TypeError) as e:
+        print(f"Unauthorized: missing token for client {sid}: {e}")
+        raise ConnectionRefusedError('authentication failed')
     print(f'Client connected to /object: {sid}')
 
 @sio.on('disconnect', namespace='/object')
