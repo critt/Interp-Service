@@ -30,5 +30,5 @@ $ docker build -t <image_name> . && docker run -it -p 8080:8080 --name <image_na
 ```
 4. Confirm its running and available (should return a list of languages):
 ```bash
-$ curl https://<ip_appdress>:8080/getSupportedLanguages
+$ curl http://<ip_appdress>:8080/getSupportedLanguages
 ```
