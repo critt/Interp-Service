@@ -1,18 +1,27 @@
 FROM python:3.10-bookworm
 ENV GOOGLE_SERVICE_JSON_FILE=google-services.json
 
+# Create a directory for logs
+RUN mkdir -p /var/log/interp
+
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 COPY requirements.txt .
-RUN pip install -r requirements.txt
 COPY google-services.json .
 COPY ./src ./src
 
+RUN pip install -r requirements.txt
 EXPOSE 8080
+ENTRYPOINT ["/entrypoint.sh"]
 
-CMD ["python", "src/app.py"]
+###################################
+# Running locally:
+###################################
+# docker container rm tsc-local && docker image rm tsi-local && docker build -t tsi-local . && docker run -it -p 8080:8080 --name tsc-local tsi-local
 
-# docker build -t tsi-feb7 . && docker run -it -p 8080:8080 --name tsc-feb7 tsi-feb7
-# docker container rm tsc-feb7 && docker image rm tsi-feb7
-
-# docker build --platform linux/amd64,linux/arm64 -t tsi2 . 
-# docker tag e2d059d76f8d us-west2-docker.pkg.dev/omega-dahlia-394021/tsi/backend-image
+###################################
+# Pushing to GCP Artifact Registry:
+###################################
+# docker build --platform linux/amd64,linux/arm64 -t tsi . 
+# docker tag tsi us-west2-docker.pkg.dev/omega-dahlia-394021/tsi/backend-image
 # docker push us-west2-docker.pkg.dev/omega-dahlia-394021/tsi/backend-image 
