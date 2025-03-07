@@ -84,13 +84,13 @@ async def listen_translate_loop(responses, client: ClientData, translate_client:
             num_chars_printed = len(transcript)
         else:
             text = transcript + overwrite_chars
-            print(text)
+            print(text, flush=True)
             
             translationResult = translate_client.translate(text, target_language=translate_language)
             
-            print('Text: {}'.format(translationResult['input']))
-            print('Translation: {}'.format(translationResult['translatedText']))
-            print('Detected source language: {}'.format(translationResult['detectedSourceLanguage']))
+            print('Text: {}'.format(translationResult['input']), flush=True)
+            print('Translation: {}'.format(translationResult['translatedText']), flush=True)
+            print('Detected source language: {}'.format(translationResult['detectedSourceLanguage']), flush=True)
 
             if client:
                 await client.send_client_data(translationResult['translatedText'], True)
@@ -125,7 +125,7 @@ class GCPService:
             clients[client_id] = ClientData(threading.Thread(target=asyncio.run, args=(GCPService.start_listen(client_id),)), sio, config, namespace=namespace)
             clients[client_id].start_audio_stream()
         else:
-            print('Warning - already running transcription for client')
+            print('Warning - already running transcription for client', flush=True)
 
     @staticmethod
     async def stop_stream(client_id: str):

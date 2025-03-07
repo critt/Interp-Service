@@ -9,8 +9,8 @@ def verify_token(token: str):
     try:
         return auth.verify_id_token(token)
     except firebase_exceptions.FirebaseError as fbe:
-        print(f"Unauthorized: Invalid token: {fbe}")
+        print(f"Unauthorized: Invalid token: {fbe}", flush=True)
         return None
     except (KeyError, TypeError) as e:
-        print(f"Unauthorized: missing token: {e}")
+        print(f"Unauthorized: missing token: {e}", flush=True)
         return None
