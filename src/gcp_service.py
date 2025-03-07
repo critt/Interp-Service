@@ -7,7 +7,7 @@ from typing import Dict
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 
-from config import GOOGLE_SERVICE_JSON_FILE
+from config import settings
 
 clients = {}
 
@@ -36,16 +36,12 @@ class ClientData:
 
     def generator(self):
         while not self._closed:
-            # Use a blocking get() to ensure there's at least one chunk of
-            # data, and stop iteration if the chunk is None, indicating the
-            # end of the audio stream.
             chunk = self._buff.get()
             if chunk is None:
                 return
 
             data = [chunk]
 
-            # Now consume whatever other data's still buffered.
             while True:
                 try:
                     chunk = self._buff.get(block=False)
@@ -109,8 +105,8 @@ class GCPService:
     async def start_listen(client_id: str):
         client = clients[client_id]
         
-        speech_client = speech.SpeechClient.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
-        translate_client = translate.Client.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
+        speech_client = speech.SpeechClient.from_service_account_json(settings.google_service_json_file)
+        translate_client = translate.Client.from_service_account_json(settings.google_service_json_file)
         
         config = speech.RecognitionConfig(encoding=GCPService.encoding_map[client.audio_config['encoding']], sample_rate_hertz=client.audio_config['sampleRateHertz'],
                                           language_code=client.audio_config['languageCode'], enable_automatic_punctuation=True)
@@ -122,10 +118,6 @@ class GCPService:
         responses = speech_client.streaming_recognize(streaming_config, requests)
         
         await listen_translate_loop(responses, client, translate_client, client.general_config['targetLanguage'])
-
-        # In case of ERROR
-        # client.emit('googleCloudStreamError', err);
-        # client._conn.emit('endGoogleCloudStream', '')
 
     @staticmethod
     async def start_stream(sio, client_id: str, config: Dict, namespace: str):
@@ -150,10 +142,10 @@ class GCPService:
     
     @staticmethod
     def detect_language(text: str):
-        translate_client = translate.Client.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
+        translate_client = translate.Client.from_service_account_json(settings.google_service_json_file)
         return translate_client.detect_language(text)
     
     @staticmethod
     def get_supported_languages():
-        translate_client = translate.Client.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
+        translate_client = translate.Client.from_service_account_json(settings.google_service_json_file)
         return translate_client.get_languages()
