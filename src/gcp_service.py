@@ -7,7 +7,7 @@ from typing import Dict
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 
-from config import GOOGLE_SERVICE_JSON_FILE
+from config import settings
 
 clients = {}
 
@@ -36,16 +36,12 @@ class ClientData:
 
     def generator(self):
         while not self._closed:
-            # Use a blocking get() to ensure there's at least one chunk of
-            # data, and stop iteration if the chunk is None, indicating the
-            # end of the audio stream.
             chunk = self._buff.get()
             if chunk is None:
                 return
 
             data = [chunk]
 
-            # Now consume whatever other data's still buffered.
             while True:
                 try:
                     chunk = self._buff.get(block=False)
@@ -88,13 +84,13 @@ async def listen_translate_loop(responses, client: ClientData, translate_client:
             num_chars_printed = len(transcript)
         else:
             text = transcript + overwrite_chars
-            print(text)
+            print(text, flush=True)
             
             translationResult = translate_client.translate(text, target_language=translate_language)
             
-            print('Text: {}'.format(translationResult['input']))
-            print('Translation: {}'.format(translationResult['translatedText']))
-            print('Detected source language: {}'.format(translationResult['detectedSourceLanguage']))
+            print('Text: {}'.format(translationResult['input']), flush=True)
+            print('Translation: {}'.format(translationResult['translatedText']), flush=True)
+            print('Detected source language: {}'.format(translationResult['detectedSourceLanguage']), flush=True)
 
             if client:
                 await client.send_client_data(translationResult['translatedText'], True)
@@ -109,8 +105,8 @@ class GCPService:
     async def start_listen(client_id: str):
         client = clients[client_id]
         
-        speech_client = speech.SpeechClient.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
-        translate_client = translate.Client.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
+        speech_client = speech.SpeechClient.from_service_account_json(settings.google_service_json_file)
+        translate_client = translate.Client.from_service_account_json(settings.google_service_json_file)
         
         config = speech.RecognitionConfig(encoding=GCPService.encoding_map[client.audio_config['encoding']], sample_rate_hertz=client.audio_config['sampleRateHertz'],
                                           language_code=client.audio_config['languageCode'], enable_automatic_punctuation=True)
@@ -123,17 +119,13 @@ class GCPService:
         
         await listen_translate_loop(responses, client, translate_client, client.general_config['targetLanguage'])
 
-        # In case of ERROR
-        # client.emit('googleCloudStreamError', err);
-        # client._conn.emit('endGoogleCloudStream', '')
-
     @staticmethod
     async def start_stream(sio, client_id: str, config: Dict, namespace: str):
         if client_id not in clients:
             clients[client_id] = ClientData(threading.Thread(target=asyncio.run, args=(GCPService.start_listen(client_id),)), sio, config, namespace=namespace)
             clients[client_id].start_audio_stream()
         else:
-            print('Warning - already running transcription for client')
+            print('Warning - already running transcription for client', flush=True)
 
     @staticmethod
     async def stop_stream(client_id: str):
@@ -150,10 +142,10 @@ class GCPService:
     
     @staticmethod
     def detect_language(text: str):
-        translate_client = translate.Client.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
+        translate_client = translate.Client.from_service_account_json(settings.google_service_json_file)
         return translate_client.detect_language(text)
     
     @staticmethod
     def get_supported_languages():
-        translate_client = translate.Client.from_service_account_json(GOOGLE_SERVICE_JSON_FILE)
+        translate_client = translate.Client.from_service_account_json(settings.google_service_json_file)
         return translate_client.get_languages()

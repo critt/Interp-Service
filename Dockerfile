@@ -1,5 +1,5 @@
 FROM python:3.10-bookworm
-ENV GOOGLE_SERVICE_JSON_FILE=google-services.json
+ENV PYTHONPATH=/src
 
 # Create a directory for logs
 RUN mkdir -p /var/log/interp
@@ -24,4 +24,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 ###################################
 # docker build --platform linux/amd64,linux/arm64 -t tsi . 
 # docker tag tsi us-west2-docker.pkg.dev/omega-dahlia-394021/tsi/backend-image
-# docker push us-west2-docker.pkg.dev/omega-dahlia-394021/tsi/backend-image 
+# docker push us-west2-docker.pkg.dev/omega-dahlia-394021/tsi/backend-image

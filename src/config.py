@@ -1,4 +1,11 @@
 import os
+from pydantic import BaseSettings
 
-GOOGLE_SERVICE_JSON_FILE = os.environ['GOOGLE_SERVICE_JSON_FILE']
-BACKEND_PORT = 8080
+class Settings(BaseSettings):
+    google_service_json_file: str
+    backend_port: int = 8080
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
