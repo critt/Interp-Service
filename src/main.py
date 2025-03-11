@@ -24,9 +24,9 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=settings.backend_port,
-        timeout_keep_alive=0,
-        http="httptools",
-        reload=True,
+        host=settings.host,
+        port=settings.port,
+        timeout_keep_alive=settings.timeout_keepalive,
+        http=settings.http_lib,
+        reload=settings.reload,
     )

@@ -1,5 +1,4 @@
 FROM python:3.10-bookworm
-ENV GOOGLE_SERVICE_JSON_FILE=google-services.json
 ENV PYTHONPATH=/src
 
 # Create a directory for logs
@@ -9,6 +8,7 @@ COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 COPY requirements.txt .
 COPY google-services.json .
+COPY .env .
 COPY ./src ./src
 
 RUN pip install -r requirements.txt
