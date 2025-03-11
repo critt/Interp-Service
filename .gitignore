@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 google-services.json
 /myenv
+.vscode/settings.json
