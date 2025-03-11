@@ -5,6 +5,7 @@ from config import settings
 cred = credentials.Certificate(settings.google_service_json_file)
 firebase_admin.initialize_app(cred)
 
+
 def verify_token(token: str):
     try:
         return auth.verify_id_token(token)
